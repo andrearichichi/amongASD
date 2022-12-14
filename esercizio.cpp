@@ -11,7 +11,7 @@ struct nodo{
     visited=false;
   }
 };
-ciao
+
 vector<nodo> grafo;
 int count=0;
 
