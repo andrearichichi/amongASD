@@ -1,2 +1,0 @@
-# amongASD
-Progetto Algoritmi
