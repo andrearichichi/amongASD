@@ -5,6 +5,7 @@ using namespace std;
 
 
 struct arco{
+  int nodo_partenza;
   int nodo;
   int peso;
   int ct;
@@ -12,19 +13,20 @@ struct arco{
 
 struct nodo{
   vector<arco> adj;
+  int nodo_entrante;
   int costo;
   bool visited;
   nodo(){
     visited=false;
     costo=0;
+    nodo_entrante=-1;
   }
 };
 
 vector<nodo> grafo;
 vector<nodo> grafo_stud;
-int count=0;
-arco impostore = {0,0,0};
-arco studente = {0,0,0};
+arco impostore = {-1,0,0,0};
+arco studente = {-1,0,0,0};
 int fablab;
 
 int main(void)
@@ -42,6 +44,7 @@ int main(void)
     arco s1;
     int f,t,j;
     in>>f>>t>>j;
+    s1.nodo_partenza = f;
     s1.nodo = t;
     s1.peso = j;
     s1.ct=0;
@@ -63,6 +66,7 @@ int main(void)
 
     grafo[n.nodo].visited=true;
     grafo[n.nodo].costo=n.ct;
+    grafo[n.nodo].nodo_entrante=n.nodo_partenza;
     //Aumenta il contatore
     //Visita tutti i vicini
     for(arco v:grafo[n.nodo].adj){
@@ -82,6 +86,7 @@ int main(void)
 
     grafo_stud[n.nodo].visited=true;
     grafo_stud[n.nodo].costo=n.ct;
+    grafo_stud[n.nodo].nodo_entrante=n.nodo_partenza;
     //Aumenta il contatore
     //Visita tutti i vicini
     for(arco v:grafo_stud[n.nodo].adj){
@@ -89,8 +94,22 @@ int main(void)
       st.push(v);        
     }
   }
+  int vittoria;
+  vittoria = grafo[fablab].costo < grafo_stud[fablab].costo ? 1 : grafo[fablab].costo > grafo_stud[fablab].costo ? 2 : 0;
+  vector<int> stanze_imp;
+  
 
-  out<<count<<endl;
+  nodo n;
+  stanze_imp.push_back(fablab);
+  n=grafo[fablab];
+  while(n.nodo_entrante!=-1 && n.nodo_entrante!=0){
+    stanze_imp.push_back(n.nodo_entrante);
+    n=grafo[n.nodo_entrante];
+  }
+
+  out<<vittoria<<endl;
+  out<<grafo[fablab].costo << " " << grafo_stud[fablab].costo<<endl;
+  
   return 0;
 }
 
