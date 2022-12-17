@@ -1,6 +1,7 @@
 #include <fstream>
 #include <vector>
-#include <stack>
+#include <queue>
+#include <climits>
 using namespace std;
 
 
@@ -9,67 +10,55 @@ struct arco{
   int nodo;
   int peso;
   int peso_max;
-  int ct;
   arco(){
     nodo_partenza=-1;
     peso_max=-1;
     peso=0;
-    ct=0;
   }
 };
 
+struct informazione{
+  int costo_totale;
+  vector<int> stanze_passate;
+  vector<arco> archi_speciali_passati;
+};
 struct nodo{
   vector<arco> adj;
   int nodo_entrante;
   int costo;
-  bool visited;
   nodo(){
-    visited=false;
-    costo=0;
+    costo=INT_MAX;
     nodo_entrante=-1;
   }
 };
 
-
-vector<nodo> grafo;
-vector<nodo> grafo_stud;
-vector<nodo> grafo_impostore;
-int vittoria;
-vector<int> stanze_imp;
-
-arco impostore, studente;
 int fablab;
-void calcola_grafo(){
-  //st lista di archi con peso e ct=peso totale raggiunto fin la
-  grafo_impostore.assign(grafo.begin(), grafo.end());
-  stack<arco> st;
-  st.push(impostore);
-  while(!st.empty()){
-    arco n=st.top();
-    st.pop();
-    //Se abbiamo giá visitato il nodo e il costo è gia inferiore o uguale, ignoriamolo.
-    if(grafo[n.nodo].visited)
-      if (grafo[n.nodo].costo <= n.ct)
-        continue;
 
-    grafo[n.nodo].visited=true;
-    grafo[n.nodo].costo=n.ct;
-    grafo[n.nodo].nodo_entrante=n.nodo_partenza;
-    //Aumenta il contatore
-    //Visita tutti i vicini
-    for(arco v:grafo[n.nodo].adj){
-      v.ct=v.peso+grafo[n.nodo].costo;
-      st.push(v);        
+void calcola_grafo(vector<nodo> grafo_da_elaborare, arco partenza, informazione &info){
+  //st lista di archi con peso e ct=peso totale raggiunto fin la
+  priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> coda;
+  coda.emplace(0, partenza.nodo);
+
+  while (!coda.empty()) {
+    int nodo = coda.top().second;
+    int costo = coda.top().first;
+    coda.pop();
+
+    for(arco v:grafo_da_elaborare[nodo].adj){
+      if (grafo_da_elaborare[v.nodo].costo > v.peso+costo)
+      {
+        grafo_da_elaborare[v.nodo].costo = v.peso+costo;
+        grafo_da_elaborare[v.nodo].nodo_entrante = nodo;
+        coda.emplace(grafo_da_elaborare[v.nodo].costo, v.nodo);       
+      }
     }
   }
 
-  vittoria = grafo[fablab].costo < grafo_stud[fablab].costo ? 1 : grafo[fablab].costo > grafo_stud[fablab].costo ? 2 : 0;
-  nodo n;
-  stanze_imp.push_back(fablab);
-  n=grafo[fablab];
+  info.stanze_passate.push_back(fablab);
+  nodo n=grafo_da_elaborare[fablab];
   while(n.nodo_entrante!=-1 && n.nodo_entrante!=0){
-    stanze_imp.push_back(n.nodo_entrante);
-    n=grafo[n.nodo_entrante];
+    info.stanze_passate.push_back(n.nodo_entrante);
+    n=grafo_da_elaborare[n.nodo_entrante];
   }
 }
 int main(void)
@@ -79,10 +68,17 @@ int main(void)
   ofstream out("output.txt");
   int N,M,S;
   in >> N >> M >> S;
-  in >> impostore.nodo >> studente.nodo >> fablab;
+  int vittoria;
+  vector<int> stanze_imp;
 
+  arco impostore, studente;
+  in >> impostore.nodo >> studente.nodo >> fablab;
+  informazione info_stud;
+  informazione info_impostore;
+  vector<nodo> grafo;
+  vector<arco> archi;
+  vector<arco> archi_speciali;
   grafo.resize(N);
-  grafo_stud.resize(N);
   //Lettura del grafo
   int f,t,j,k;
   for(int i=0;i<M;i++){
@@ -91,52 +87,40 @@ int main(void)
     s1.nodo_partenza = f;
     s1.nodo = t;
     s1.peso = j;
-    s1.ct=0;
+    archi.push_back(s1);
     grafo[f].adj.push_back(s1);
   }
-  
-  for(int i=0;i<k;i++){
+
+  for(int i=0;i<S;i++){
     arco s1;
     in>>f>>t>>j>>k;
     s1.nodo_partenza = f;
     s1.nodo = t;
     s1.peso = j;
     s1.peso_max=k;
-    s1.ct=0;
+    archi_speciali.push_back(s1);
     grafo[f].adj.push_back(s1);
   }
-  //creo un grafo uguale per lo studente
-  grafo_stud.assign(grafo.begin(), grafo.end());
-  stack<arco> st;
 
-  st.push(studente);
-  while(!st.empty()){
-    arco n=st.top();
-    st.pop();
-    //Se abbiamo giá visitato il nodo e il costo è gia inferiore o uguale, ignoriamolo.
-    if(grafo_stud[n.nodo].visited)
-      if (grafo_stud[n.nodo].costo <= n.ct)
-        continue;
+  calcola_grafo(grafo, studente, info_stud);
+  calcola_grafo(grafo, impostore, info_impostore);
 
-    grafo_stud[n.nodo].visited=true;
-    grafo_stud[n.nodo].costo=n.ct;
-    grafo_stud[n.nodo].nodo_entrante=n.nodo_partenza;
-    //Aumenta il contatore
-    //Visita tutti i vicini
-    for(arco v:grafo_stud[n.nodo].adj){
-      v.ct=v.peso+grafo_stud[n.nodo].costo;
-      st.push(v);        
-    }
-  }
-  calcola_grafo();
-  
+  vittoria = info_impostore.costo_totale < info_stud.costo_totale ? 1 : info_impostore.costo_totale > info_stud.costo_totale ? 2 : 0;
+  // nodo n;
+  // stanze_imp.push_back(fablab);
+  // n=grafo_impostore[fablab];
+  // while(n.nodo_entrante!=-1 && n.nodo_entrante!=0){
+  //   stanze_imp.push_back(n.nodo_entrante);
+  //   n=grafo_impostore[n.nodo_entrante];
+  // }
+
   out<<vittoria<<endl;
-  out<<grafo[fablab].costo << " " << grafo_stud[fablab].costo<<endl;
-  //numeri ventole
-  out << stanze_imp.size()<<endl;
-  while (stanze_imp.size()>0){
-    out<< stanze_imp.back()<< " ";
-    stanze_imp.pop_back();
+  out<<info_impostore.costo_totale << " " << info_stud.costo_totale<<endl;
+  // //numeri ventole
+  out << info_impostore.stanze_passate.size()<<endl;
+  while (info_impostore.stanze_passate.size()>0){
+    out<< info_impostore.stanze_passate.back()<< " ";
+    info_impostore.stanze_passate.pop_back();
   }
 
   return 0;
