@@ -8,7 +8,14 @@ struct arco{
   int nodo_partenza;
   int nodo;
   int peso;
+  int peso_max;
   int ct;
+  arco(){
+    nodo_partenza=-1;
+    peso_max=-1;
+    peso=0;
+    ct=0;
+  }
 };
 
 struct nodo{
@@ -23,38 +30,19 @@ struct nodo{
   }
 };
 
+
 vector<nodo> grafo;
 vector<nodo> grafo_stud;
-arco impostore = {-1,0,0,0};
-arco studente = {-1,0,0,0};
+vector<nodo> grafo_impostore;
+int vittoria;
+vector<int> stanze_imp;
+
+arco impostore, studente;
 int fablab;
-
-int main(void)
-{
-  ifstream in("input.txt");
-  ofstream out("output.txt");
-  int N,M,S;
-  in >> N >> M >> S;
-  in >> impostore.nodo >> studente.nodo >> fablab;
-
-  grafo.resize(N);
-  grafo_stud.resize(N);
-  //Lettura del grafo
-  for(int i=0;i<M;i++){
-    arco s1;
-    int f,t,j;
-    in>>f>>t>>j;
-    s1.nodo_partenza = f;
-    s1.nodo = t;
-    s1.peso = j;
-    s1.ct=0;
-    grafo[f].adj.push_back(s1);
-  }
-  //creo un grafo uguale per lo studente
-  grafo_stud.assign(grafo.begin(), grafo.end());
-  stack<arco> st;
-  
+void calcola_grafo(){
   //st lista di archi con peso e ct=peso totale raggiunto fin la
+  grafo_impostore.assign(grafo.begin(), grafo.end());
+  stack<arco> st;
   st.push(impostore);
   while(!st.empty()){
     arco n=st.top();
@@ -75,6 +63,52 @@ int main(void)
     }
   }
 
+  vittoria = grafo[fablab].costo < grafo_stud[fablab].costo ? 1 : grafo[fablab].costo > grafo_stud[fablab].costo ? 2 : 0;
+  nodo n;
+  stanze_imp.push_back(fablab);
+  n=grafo[fablab];
+  while(n.nodo_entrante!=-1 && n.nodo_entrante!=0){
+    stanze_imp.push_back(n.nodo_entrante);
+    n=grafo[n.nodo_entrante];
+  }
+}
+int main(void)
+{
+  
+  ifstream in("input.txt");
+  ofstream out("output.txt");
+  int N,M,S;
+  in >> N >> M >> S;
+  in >> impostore.nodo >> studente.nodo >> fablab;
+
+  grafo.resize(N);
+  grafo_stud.resize(N);
+  //Lettura del grafo
+  int f,t,j,k;
+  for(int i=0;i<M;i++){
+    arco s1;
+    in>>f>>t>>j;
+    s1.nodo_partenza = f;
+    s1.nodo = t;
+    s1.peso = j;
+    s1.ct=0;
+    grafo[f].adj.push_back(s1);
+  }
+  
+  for(int i=0;i<k;i++){
+    arco s1;
+    in>>f>>t>>j>>k;
+    s1.nodo_partenza = f;
+    s1.nodo = t;
+    s1.peso = j;
+    s1.peso_max=k;
+    s1.ct=0;
+    grafo[f].adj.push_back(s1);
+  }
+  //creo un grafo uguale per lo studente
+  grafo_stud.assign(grafo.begin(), grafo.end());
+  stack<arco> st;
+
   st.push(studente);
   while(!st.empty()){
     arco n=st.top();
@@ -94,22 +128,17 @@ int main(void)
       st.push(v);        
     }
   }
-  int vittoria;
-  vittoria = grafo[fablab].costo < grafo_stud[fablab].costo ? 1 : grafo[fablab].costo > grafo_stud[fablab].costo ? 2 : 0;
-  vector<int> stanze_imp;
+  calcola_grafo();
   
-
-  nodo n;
-  stanze_imp.push_back(fablab);
-  n=grafo[fablab];
-  while(n.nodo_entrante!=-1 && n.nodo_entrante!=0){
-    stanze_imp.push_back(n.nodo_entrante);
-    n=grafo[n.nodo_entrante];
-  }
-
   out<<vittoria<<endl;
   out<<grafo[fablab].costo << " " << grafo_stud[fablab].costo<<endl;
-  
+  //numeri ventole
+  out << stanze_imp.size()<<endl;
+  while (stanze_imp.size()>0){
+    out<< stanze_imp.back()<< " ";
+    stanze_imp.pop_back();
+  }
+
   return 0;
 }
 
