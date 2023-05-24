@@ -41,7 +41,7 @@ struct nodo{
 int main()
 {
     
-    ifstream in("input0.txt");
+    ifstream in("input.txt");
     ofstream out("output.txt");
     int N,M;
     in >> N >> M;
@@ -61,5 +61,10 @@ int main()
         grafo[f].adj.push_back(s1);
         grafo[t].adj.push_back(s1);
     }
+    out<< 0 << ' ' << M << endl;
+    for (arco x: archi){
+      out<< '-' << ' ' << x.nodo << ' ' << x.nodo_partenza << endl;
+    }
+    out << "***" << endl;
     int a = 0;
 }
