@@ -123,7 +123,7 @@ int main()
           int mancanti = differenceSet.size();
           int n_adj = x.adj.size()-1;
           if (mancanti>0 && n_adj/mancanti < 2) {
-            
+            ///elliminare e andare avanti ricalcolare i grafi e proseguire con il capire se eliminare o collegare i grafi restanti
           }
           
         }
