@@ -46,6 +46,30 @@ struct nodo{
 int grafo_count = 0;
 map<int, set<int>> grafi;
 vector<nodo> grafo;
+vector<string> delete_base;
+set<string> created;
+set<string> destroyed;
+int best_move=0;
+int mucca=0;
+
+void connetti_stacca_grafi(){
+  for (const auto& coppia : grafi) {
+    for (const int& elemento : coppia.second) {
+      set<int> differenceSet;
+      set_difference(coppia.second.begin(), coppia.second.end(),
+                          grafo[elemento].adj.begin(), grafo[elemento].adj.end(),
+                          inserter(differenceSet, differenceSet.begin()));
+      differenceSet.erase(elemento);
+      for (int n: differenceSet) {
+        grafo[elemento].adj.insert(n);
+        grafo[n].adj.insert(elemento);
+        created.insert("+ "+to_string(n)+" "+to_string(elemento));
+        mucca++;
+      }
+    }
+
+  }
+}
 
 void calcola_grafi(){
   stack<int> coda;
@@ -91,13 +115,18 @@ int main()
       grafo_count = 0;
       grafi.clear();
       grafo.clear();
+      destroyed.clear();
+      created.clear();
       int N,M;
       in >> N >> M;
       int vittoria;
       
       vector<arco> archi;
-      vector<arco> created;
-      vector<arco> destroyed;
+      best_move=0;
+      mucca=0;
+      
+      delete_base.clear();
+      
       grafo.resize(N);
 
       //Lettura del grafo
@@ -108,29 +137,51 @@ int main()
           s1.nodo_partenza = f;
           s1.nodo = t;
           archi.push_back(s1);
+          delete_base.push_back("- " + to_string(f) + " " + to_string(t));
+          best_move++;
           grafo[f].adj.insert(t);
           grafo[f].id_nodo=f;
           grafo[t].adj.insert(f);
           grafo[t].id_nodo=t;
       }
       for (nodo& x: grafo) {
-        for (int n_id: x.adj) {
+        set<int> lista_adiacenti_copia= x.adj;
+        for (int n_id: lista_adiacenti_copia) {
           set<int> differenceSet;
           set_difference(x.adj.begin(), x.adj.end(),
                               grafo[n_id].adj.begin(), grafo[n_id].adj.end(),
                               inserter(differenceSet, differenceSet.begin()));
 
-          int mancanti = differenceSet.size();
+          int mancanti = differenceSet.size()-1;
           int n_adj = x.adj.size()-1;
           if (mancanti>0 && n_adj/mancanti < 2) {
-            ///elliminare e andare avanti ricalcolare i grafi e proseguire con il capire se eliminare o collegare i grafi restanti
+            x.adj.erase(n_id);
+            grafo[n_id].adj.erase(x.id_nodo);
+            destroyed.insert("- "+to_string(n_id) + ' ' + to_string(x.id_nodo));
+            mucca++;
           }
           
         }
       }
 
+      out << "0 " << best_move << endl;
+      for (arco i: archi) {
+        out << "- " << i.nodo << " " << i.nodo_partenza << endl;
+      }
+      out << "***" << endl;
       calcola_grafi();
-      out << grafi.size();
+      connetti_stacca_grafi();
+      if (best_move > mucca) {
+        out << created.size() << " " << destroyed.size() << endl;
+        for (string i: created){
+          out << i << endl;
+        }
+        for (string i: destroyed){
+          out << i << endl;
+        }
+        out << "***" << endl;
+      } 
+      
     }
 
 
