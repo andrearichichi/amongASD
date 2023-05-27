@@ -26,38 +26,34 @@ struct nodo{
   bool visitato=false;
 };
 vector<nodo> grafo;
-vector<nodo> grafo2;
 
 //globall
 map<int, int> resu;
 int grafo_count = 0;
 map<int, map<int, int>> grafi;
-map<int, map<int, int>> grafi2;
+map<int, int> grafi_archi;
 set<string> delete_base;
 set<string> created;
-set<string> created2;
 set<string> destroyed;
-set<string> destroyed2;
 int best_move=0;
 int mucca=0;
-int mucca2=0;
 
-void connetti_stacca_grafi(vector<nodo>& grafom, map<int, map<int, int>>& grafim, set<string>& created_m, set<string>& destroyed_m, int& muccam){
-  int a = grafim.size();
-  for (const auto& coppia : grafim) {
+void connetti_stacca_grafi(){
+  int a = grafi.size();
+  for (const auto& coppia : grafi) {
     
     unordered_set <int> nodi_restanti;
-    int n_n = grafim[coppia.first].size()-1;
+    int n_n = grafi[coppia.first].size()-1;
     vector<pair<int, int>> pairs(coppia.second.begin(), coppia.second.end());
 
     sort(pairs.begin(), pairs.end(), CompareSecond());
     while (!pairs.empty() && pairs[0].second < n_n/2) {
-      unordered_set<int> lista_adiacenti_copia= grafom[pairs[0].first].adj;
+      unordered_set<int> lista_adiacenti_copia= grafo[pairs[0].first].adj;
       for (const auto& to_del : lista_adiacenti_copia) {
-        grafom[pairs[0].first].adj.erase(to_del);
-        grafom[to_del].adj.erase(pairs[0].first);
-        destroyed_m.insert("- "+to_string(pairs[0].first) + ' ' + to_string(to_del));
-        muccam++;
+        grafo[pairs[0].first].adj.erase(to_del);
+        grafo[to_del].adj.erase(pairs[0].first);
+        destroyed.insert("- "+to_string(pairs[0].first) + ' ' + to_string(to_del));
+        mucca++;
       }
       pairs.erase(pairs.begin());
       sort(pairs.begin(), pairs.end(), CompareSecond());
@@ -68,14 +64,14 @@ void connetti_stacca_grafi(vector<nodo>& grafom, map<int, map<int, int>>& grafim
     }
     for (const auto& e1 : nodi_restanti) {
       for (const auto& e2 : nodi_restanti) {
-        if (e1 != e2 && grafom[e1].adj.find(e2) == grafom[e1].adj.end()) {
-          grafom[e1].adj.insert(e2);
-          grafom[e2].adj.insert(e1);
-          size_t n_rimossi = destroyed_m.erase("- "+to_string(e2)+" "+to_string(e1));
-          size_t n_rimossi2 = destroyed_m.erase("- "+to_string(e1)+" "+to_string(e2));
+        if (e1 != e2 && grafo[e1].adj.find(e2) == grafo[e1].adj.end()) {
+          grafo[e1].adj.insert(e2);
+          grafo[e2].adj.insert(e1);
+          size_t n_rimossi = destroyed.erase("- "+to_string(e2)+" "+to_string(e1));
+          size_t n_rimossi2 = destroyed.erase("- "+to_string(e1)+" "+to_string(e2));
           if (n_rimossi == 0 && n_rimossi2 == 0) {
-            created_m.insert("+ "+to_string(e2)+" "+to_string(e1));
-            muccam++;
+            created.insert("+ "+to_string(e2)+" "+to_string(e1));
+            mucca++;
           }
         }
       }
@@ -83,14 +79,15 @@ void connetti_stacca_grafi(vector<nodo>& grafom, map<int, map<int, int>>& grafim
   }
 }
 
-void calcola_grafi(vector<nodo>& grafo_m, map<int, map<int, int>>& grafi_m){
+void calcola_grafi(){
   stack<int> coda;
   grafo_count = 0;
-  for (nodo& x: grafo_m) {
+  for (nodo& x: grafo) {
     //se non visitato aggiungo gli adiacenti alla coda e aumento il grafo count di 1 che mi serve per inserire l'id
     if (!x.visitato){
       grafo_count++;
-      grafi_m[grafo_count][x.id_nodo] = x.adj.size();
+      auto result = grafi[grafo_count][x.id_nodo] = x.adj.size();
+      grafi_archi[grafo_count] += x.adj.size();
       x.visitato = true;
       for(int v: x.adj){
         coda.push(v);
@@ -100,12 +97,13 @@ void calcola_grafi(vector<nodo>& grafo_m, map<int, map<int, int>>& grafi_m){
     while (!coda.empty()){
       int a = coda.top();
       coda.pop();
-      nodo& n = grafo_m[a];
+      nodo& n = grafo[a];
       if (n.visitato){
         continue;
       }
       n.visitato = true;
-      grafi_m[grafo_count][n.id_nodo] = n.adj.size();
+      auto result = grafi[grafo_count][n.id_nodo] = n.adj.size();
+      grafi_archi[grafo_count] += n.adj.size();
       for(int v: n.adj){
         coda.push(v);
       }
@@ -119,6 +117,7 @@ void programmino(string inf, string outf, int id)
   ofstream out(outf);
   grafo_count = 0;
   grafi.clear();
+  grafi_archi.clear();
   grafo.clear();
   destroyed.clear();
   created.clear();
@@ -154,41 +153,7 @@ void programmino(string inf, string outf, int id)
   
   //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   //cout << "before cleanup: " << duration.count() <<  "\n";
-  for (nodo& x: grafo2) {
-    unordered_set<int> lista_adiacenti_copia= x.adj;
-    for (int n_id: lista_adiacenti_copia) {
-      float half_len = static_cast<float>(x.adj.size() - 1) * 0.9;
-      int non_trovati = 0;
-      for (int i: x.adj) {
-        if (i!=n_id && grafo2[n_id].adj.find(i) == grafo2[n_id].adj.end()) {
-          non_trovati++;
-          if (non_trovati > half_len) {
-            break;
-          }
-        }
-      }
-      if (non_trovati > half_len) {
-        x.adj.erase(n_id);
-        grafo2[n_id].adj.erase(x.id_nodo);
-        destroyed2.insert("- "+to_string(n_id) + ' ' + to_string(x.id_nodo));
-        mucca2++;
-      } 
-    }
-  }
-  //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
-  //cout << "after cleanup: " << duration.count() <<  "\n";
-  calcola_grafi(grafo2, grafi2);
-  connetti_stacca_grafi(grafo2, grafi2, created2, destroyed2, mucca2);
-  if (best_move > mucca2){
-    out << created2.size() << " " << destroyed2.size() << "\n";
-    for (string i: created2){
-      out << i << "\n";
-    }
-    for (string i: destroyed2){
-      out << i << "\n";
-    }
-    out << "***" << "\n";
-  }
+
   for (nodo& x: grafo) {
     unordered_set<int> lista_adiacenti_copia= x.adj;
     for (int n_id: lista_adiacenti_copia) {
@@ -210,13 +175,18 @@ void programmino(string inf, string outf, int id)
       } 
     }
   }
+
+  //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
+  //cout << "after cleanup: " << duration.count() <<  "\n";
+  calcola_grafi();
   //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   //cout << "after grafo id: " << duration.count() <<  "\n";
-  calcola_grafi(grafo, grafi);
-  connetti_stacca_grafi(grafo, grafi, created, destroyed, mucca);
+  connetti_stacca_grafi();
   //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   //cout << "finale: " << duration.count() <<  "\n";
-  if (mucca2 > mucca) {
+  resu[id] = best_move;
+  if (best_move > mucca) {
+    resu[id] = mucca;
     out << created.size() << " " << destroyed.size() << "\n";
     for (string i: created){
       out << i << "\n";
@@ -226,6 +196,13 @@ void programmino(string inf, string outf, int id)
     }
     out << "***" << "\n";
   } 
+  // else {
+  //   out << "0 " << best_move << "\n";
+  //   for (string i: delete_base) {
+  //     out << i << "\n";
+  //   }
+  //   out << "***" << "\n";
+  // }
   
   //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   //cout << "fine stampa: " << duration.count() <<  "\n";
