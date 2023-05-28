@@ -35,7 +35,11 @@ vector<nodo> grafo2;
 
 struct CompareNodoPtr {
   bool operator()(const nodo* a, const nodo* b) const {
-    return a->adj.size() < b->adj.size();
+    if (a->adj.size() == b->adj.size()) {
+      return a < b;  // Confronto i puntatori per mantenere tutti gli elementi
+    } else {
+      return a->adj.size() < b->adj.size();
+    }
   }
 };
 //globall
@@ -78,7 +82,7 @@ void connetti_stacca_grafi(vector<nodo>& grafom, vector<set<nodo*>> grafim, set<
       }
       da_elliminare = false;
       for (nodo* to_del : mySet_ordered) {
-        if (to_del->adj.size() <= n_n/2) {
+        if ( to_del->adj.size() < n_n/2) {
           nodo_da_elliminarea = to_del;
           da_elliminare = true;
           break;
@@ -142,6 +146,7 @@ void calcola_grafi(vector<nodo>& grafo_m, vector<set<nodo*>>& grafi_m){
 
 void programmino(string inf, string outf, int id)
 {
+  archi_solidi.clear();
   ifstream in(inf);
   ofstream out(outf);
   grafo_count = 0;
@@ -255,7 +260,7 @@ void programmino(string inf, string outf, int id)
 
 
 int main() {
-  for (int i = 0; i <= 19; i++) {
+  for (int i = 1; i <= 1; i++) {
     string inf = "input/input"+ to_string(i)+".txt";
     string outf = "output/output"+ to_string(i)+".txt";
     programmino(inf, outf, i);
