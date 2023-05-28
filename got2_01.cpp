@@ -14,18 +14,13 @@
 
 
 using namespace std;
-struct CompareSecond {
-    template<typename T>
-    bool operator()(const T& a, const T& b) const {
-        return a.second < b.second;
-    }
-};
+
 
 
 auto startTime = chrono::high_resolution_clock::now();
 auto duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
 struct nodo{
-  unordered_set<nodo*> adj;
+  set<nodo*> adj;
   int id_nodo;
   bool visitato=false;
 };
@@ -39,6 +34,16 @@ struct CompareNodoPtr {
       return a < b;  // Confronto i puntatori per mantenere tutti gli elementi
     } else {
       return a->adj.size() < b->adj.size();
+    }
+  }
+};
+
+struct CompareNodoPtrBase {
+  bool operator()(const nodo a, const nodo b) const {
+    if (a.adj.size() == b.adj.size()) {
+      return a.id_nodo < b.id_nodo;  // Confronto i puntatori per mantenere tutti gli elementi
+    } else {
+      return a.adj.size() < b.adj.size();
     }
   }
 };
@@ -60,24 +65,25 @@ void connetti_stacca_grafi(vector<nodo>& grafom, vector<set<nodo*>> grafim, set<
   for (set<nodo*>& g : grafim) {
     cout << a << endl;
     a++;
-    set<nodo*, CompareNodoPtr> mySet_ordered;
-    for (nodo* n: g){
-      mySet_ordered.insert(n);
-    }
+    vector<nodo*> vect(g.begin(), g.end());
+    sort(vect.begin(), vect.end(), CompareNodoPtr());
+    set<nodo*> mySet_ordered(vect.begin(), vect.end());
+
     bool da_elliminare = true;
     nodo* nodo_da_elliminarea = nullptr;
     while (da_elliminare) {
       int n_n = mySet_ordered.size()-1;
       if (nodo_da_elliminarea != nullptr) {
-        unordered_set<nodo*> adjSet = nodo_da_elliminarea->adj;
+        set<nodo*> adjSet = nodo_da_elliminarea->adj;
+        cout  << nodo_da_elliminarea->id_nodo <<" "<< g.size()<< " " <<  mySet_ordered.size()<< endl;
+        g.erase(nodo_da_elliminarea);
+        mySet_ordered.erase(nodo_da_elliminarea);
         for (nodo* n_to_del: adjSet) {
           nodo_da_elliminarea->adj.erase(n_to_del);
           n_to_del->adj.erase(nodo_da_elliminarea);
           destroyed_m.insert("- "+to_string(nodo_da_elliminarea->id_nodo) + ' ' + to_string(n_to_del->id_nodo));
           muccam++;
         }
-        g.erase(nodo_da_elliminarea);
-        mySet_ordered.erase(nodo_da_elliminarea);
         nodo_da_elliminarea = nullptr;
       }
       da_elliminare = false;
@@ -89,14 +95,9 @@ void connetti_stacca_grafi(vector<nodo>& grafom, vector<set<nodo*>> grafim, set<
         }
       }
     }
-    unordered_set<nodo*> unordered;
-    for (nodo* n_to_cop: mySet_ordered) {
-      unordered.insert(n_to_cop);
-    }
-    
     //coolllega il resto
-    for (nodo* to_add: unordered) {
-      for (nodo* to_add_remain: unordered) {
+    for (nodo* to_add: mySet_ordered) {
+      for (nodo* to_add_remain: mySet_ordered) {
         if(to_add != to_add_remain && to_add->adj.find(to_add_remain) == to_add->adj.end()) {
           to_add->adj.insert(to_add_remain);
           to_add_remain->adj.insert(to_add);
@@ -175,7 +176,14 @@ void programmino(string inf, string outf, int id)
   // //cout << "before cleanup: " << duration.count() <<  "\n";
   float rap = 0.5;
   // da migliorare con un ordered set di SOLIDI ARCHI
+  sort(grafo.begin(), grafo.end(), CompareNodoPtrBase());
   for (nodo& x: grafo) {
+    vector<nodo*> vec(x.adj.begin(), x.adj.end());
+    sort(vec.begin(), vec.end(), CompareNodoPtr());
+    x.adj.clear();
+    for (nodo* p : vec) {
+      x.adj.insert(p);
+    }
     bool da_elliminare = true;
     nodo* nodo_da_elliminare = nullptr;
     while (da_elliminare) {
@@ -256,11 +264,12 @@ void programmino(string inf, string outf, int id)
   
   // duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   // cout << "fine stampa: " << duration.count() <<  "\n";
+  resu[id] = mucca;
 }
 
 
 int main() {
-  for (int i = 1; i <= 1; i++) {
+  for (int i = 0; i <= 19; i++) {
     string inf = "input/input"+ to_string(i)+".txt";
     string outf = "output/output"+ to_string(i)+".txt";
     programmino(inf, outf, i);
