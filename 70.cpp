@@ -30,7 +30,7 @@ vector<nodo> grafo;
 //globall
 map<int, int> resu;
 int grafo_count = 0;
-map<int, map<int, int>> grafi;
+map<int, map<int, int> > grafi;
 map<int, int> grafi_archi;
 set<string> delete_base;
 set<string> created;
@@ -44,7 +44,7 @@ void connetti_stacca_grafi(){
     
     unordered_set <int> nodi_restanti;
     int n_n = grafi[coppia.first].size()-1;
-    vector<pair<int, int>> pairs(coppia.second.begin(), coppia.second.end());
+    vector<pair<int, int> > pairs(coppia.second.begin(), coppia.second.end());
 
     sort(pairs.begin(), pairs.end(), CompareSecond());
     while (!pairs.empty() && pairs[0].second < n_n/2) {
