@@ -51,8 +51,8 @@ struct CompareNodoPtrBase {
 map<int, int> resu;
 int grafo_count = 0;
 unordered_set<string> archi_solidi;
-vector<set<nodo*>> grafi;
-map<int, set<nodo*>> grafi2;
+vector<set<nodo*> > grafi;
+map<int, set<nodo*> > grafi2;
 set<string> created;
 set<string> created2;
 set<string> destroyed;
@@ -60,7 +60,7 @@ set<string> destroyed2;
 int mucca=0;
 int mucca2=0;
 
-void connetti_stacca_grafi(vector<nodo>& grafom, vector<set<nodo*>> grafim, set<string>& created_m, set<string>& destroyed_m, int& muccam){
+void connetti_stacca_grafi(vector<nodo>& grafom, vector<set<nodo*> > grafim, set<string>& created_m, set<string>& destroyed_m, int& muccam){
   int a = 0;
   for (set<nodo*>& g : grafim) {
     cout << a << endl;
@@ -113,7 +113,7 @@ void connetti_stacca_grafi(vector<nodo>& grafom, vector<set<nodo*>> grafim, set<
   }
 }
 
-void calcola_grafi(vector<nodo>& grafo_m, vector<set<nodo*>>& grafi_m){
+void calcola_grafi(vector<nodo>& grafo_m, vector<set<nodo*> >& grafi_m){
   stack<int> coda;
   grafo_count = -1;
   for (nodo& x: grafo_m) {
