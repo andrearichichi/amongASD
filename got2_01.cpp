@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 // #include <climits>
+#include <utility>
 #include <iostream>
 #include <map>
 #include <chrono>
@@ -28,6 +29,7 @@ struct nodo{
   int id_nodo;
   bool visitato=false;
 };
+
 vector<nodo> grafo;
 vector<nodo> grafo2;
 
@@ -39,6 +41,7 @@ struct CompareNodoPtr {
 //globall
 map<int, int> resu;
 int grafo_count = 0;
+unordered_set<string> archi_solidi;
 vector<set<nodo*>> grafi;
 map<int, set<nodo*>> grafi2;
 set<string> created;
@@ -180,6 +183,9 @@ void programmino(string inf, string outf, int id)
       da_elliminare = false;
       bool esci = false;
       for (nodo* n: x.adj) {
+        if (archi_solidi.find(to_string(x.id_nodo)+to_string(n->id_nodo)) != archi_solidi.end()) {
+          continue;
+        }
         if (esci) {
           break;
         }
@@ -205,6 +211,10 @@ void programmino(string inf, string outf, int id)
               break;
             }
           } 
+        }
+        if (da_elliminare == false) {
+          archi_solidi.insert(to_string(n->id_nodo)+to_string(x.id_nodo));
+          archi_solidi.insert(to_string(x.id_nodo)+to_string(n->id_nodo));
         }
       }
     }
