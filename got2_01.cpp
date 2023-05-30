@@ -11,12 +11,11 @@
 #include <chrono>
 #include <set>
 #include <unordered_set>
-// #include "got2.h"
+#include "got2.h"
+
 
 using namespace std;
 
-auto startTime = chrono::high_resolution_clock::now();
-auto duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
 struct nodo{
   unordered_set<nodo*> adj;
   int id_nodo;
@@ -161,6 +160,7 @@ void programmino(string inf, string outf, int id)
   mucca=0; 
   mosse_effettuate=0; 
   grafo.resize(N);
+  grafo2.resize(N);
 
   //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   //cout << "before read: " << duration.count() <<  "\n";
@@ -172,68 +172,58 @@ void programmino(string inf, string outf, int id)
     grafo[t].id_nodo=t;
     grafo[f].adj.insert(&grafo[t]);
     grafo[t].adj.insert(&grafo[f]);
+    if (M<200000){
+      grafo2[f].id_nodo=f;
+      grafo2[t].id_nodo=t;
+      grafo2[f].adj.insert(&grafo2[t]);
+      grafo2[t].adj.insert(&grafo2[f]);
+    }
   }
-  
   for (nodo& n : grafo) {
-      grafo2_p.push_back(&n);
       grafo_p.push_back(&n);
   }
-  
-  for (nodo* x: grafo2_p) {
-    unordered_set<nodo*> lista_adiacenti_copia= x->adj;
-    for (nodo* n: lista_adiacenti_copia) {
-      float half_len = static_cast<float>(x->adj.size() - 1) * rap;
-      int non_trovati = 0;
-      for (nodo* i: x->adj) {
-        if (i!=n && n->adj.find(i) == n->adj.end()) {
-          non_trovati++;
-          if (non_trovati > half_len) {
-            break;
+  float rap = 0.85;
+  if (M<200000){
+    for (nodo& n : grafo2) {
+        grafo2_p.push_back(&n);
+    }
+    for (nodo* x: grafo2_p) {
+      unordered_set<nodo*> lista_adiacenti_copia= x->adj;
+      for (nodo* n: lista_adiacenti_copia) {
+        float half_len = static_cast<float>(x->adj.size() - 1) * rap;
+        int non_trovati = 0;
+        for (nodo* i: x->adj) {
+          if (i!=n && n->adj.find(i) == n->adj.end()) {
+            non_trovati++;
+            if (non_trovati > half_len) {
+              break;
+            }
           }
         }
-      }
-      if (non_trovati > half_len) {
-        x->adj.erase(n);
-        n->adj.erase(x);
-        destroyed2.insert("- "+to_string(n->id_nodo) + ' ' + to_string(x->id_nodo));
-        mosse_effettuate++;
-      } 
-    }
-  }
-  while (true) {
-    sort(grafo2_p.begin(), grafo2_p.end(), CompareNodoPtrDesc());
-    if (grafo2_p[0]->grafed == false) {
-      break;
-    }
-    for (nodo* x: grafo2_p[0]->adj) {
-      unordered_set<nodo*> lista_adiacenti_copia= x->adj;
-      for (nodo* y: lista_adiacenti_copia) {
-        if (y!=grafo2_p[0] && grafo2_p[0]->adj.find(y) == grafo2_p[0]->adj.end()) {
-          x->adj.erase(y);
-          y->adj.erase(x);
-          destroyed2.insert("- "+to_string(x->id_nodo) + ' ' + to_string(y->id_nodo));
+        if (non_trovati > half_len) {
+          x->adj.erase(n);
+          n->adj.erase(x);
+          destroyed2.insert("- "+to_string(n->id_nodo) + ' ' + to_string(x->id_nodo));
           mosse_effettuate++;
-        }
+        } 
       }
-      x->grafed=false;
     }
-    grafo2_p[0]->grafed=false;
+    calcola_grafi(grafo2_p, grafi2);
+    connetti_stacca_grafi2(grafi2, created2, destroyed2, mosse_effettuate);
+    out << created2.size() << " " << destroyed2.size() << "\n";
+    for (string i: created2){
+      out << i << "\n";
+    }
+    for (string i: destroyed2){
+      out << i << "\n";
+    }
+    out << "***" << "\n";
+    resu[id] = mosse_effettuate;
   }
-  calcola_grafi(grafo2_p, grafi2);
-  connetti_stacca_grafi2(grafi2, created2, destroyed2, mosse_effettuate);
-  out << created2.size() << " " << destroyed2.size() << "\n";
-  for (string i: created2){
-    out << i << "\n";
-  }
-  for (string i: destroyed2){
-    out << i << "\n";
-  }
-  out << "***" << "\n";
-  resu[id] = mosse_effettuate;
-
+  out.close();
   // //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   // //cout << "before cleanup: " << duration.count() <<  "\n";
-  float rap = 0.5;
+  rap = 0.5;
   // da migliorare con un ordered set di SOLIDI ARCHI
   for (nodo* x: grafo_p) {
     unordered_set<nodo*> lista_adiacenti_copia= x->adj;
@@ -259,7 +249,7 @@ void programmino(string inf, string outf, int id)
 
   calcola_grafi(grafo_p, grafi);
   connetti_stacca_grafi2(grafi, created, destroyed, mucca);
-  if (mucca < mosse_effettuate) {
+  if (mosse_effettuate == 0 || mucca < mosse_effettuate) {
     ofstream outonee(outf);
     outonee << created.size() << " " << destroyed.size() << "\n";
     for (string i: created){
@@ -275,17 +265,16 @@ void programmino(string inf, string outf, int id)
 
 
 int main() {
-  for (int i = 14; i <= 19; i++) {
-    string inf = "input/input"+ to_string(i)+".txt";
-    string outf = "output/output"+ to_string(i)+".txt";
-    programmino(inf, outf, i);
-    duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
-    cout << inf << "   " << duration.count() <<  "\n";
-  }
-  string outf2 = "final_new.txt";
-  ofstream out2(outf2);
-  for (const auto& pair : resu) {
-      out2 << pair.first << ": " << pair.second << "\n";
-  }
-  // programmino("input.txt", "output.txt", 1);
+  // for (int i = 11; i <= 11; i++) {
+  //   string inf = "input/input"+ to_string(i)+".txt";
+  //   string outf = "output/output"+ to_string(i)+".txt";
+  //   programmino(inf, outf, i);
+  // }
+  // string outf2 = "final_new.txt";
+  // ofstream out2(outf2);
+  // for (const auto& pair : resu) {
+  //     out2 << pair.first << ": " << pair.second << "\n";
+  // }
+  programmino("input.txt", "output.txt", 1);
+  return 0;
 }
