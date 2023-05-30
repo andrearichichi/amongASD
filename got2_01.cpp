@@ -86,6 +86,7 @@ void connetti_stacca_grafi2(vector<set<nodo*> > grafim, set<string>& created_m, 
         }
       }
       if (da_elliminare) {
+        g.erase(vect[0]);
         vect.erase(vect.begin());
       }
     }
@@ -178,7 +179,27 @@ void programmino(string inf, string outf, int id)
       grafo_p.push_back(&n);
   }
   
-
+  for (nodo* x: grafo2_p) {
+    unordered_set<nodo*> lista_adiacenti_copia= x->adj;
+    for (nodo* n: lista_adiacenti_copia) {
+      float half_len = static_cast<float>(x->adj.size() - 1) * rap;
+      int non_trovati = 0;
+      for (nodo* i: x->adj) {
+        if (i!=n && n->adj.find(i) == n->adj.end()) {
+          non_trovati++;
+          if (non_trovati > half_len) {
+            break;
+          }
+        }
+      }
+      if (non_trovati > half_len) {
+        x->adj.erase(n);
+        n->adj.erase(x);
+        destroyed2.insert("- "+to_string(n->id_nodo) + ' ' + to_string(x->id_nodo));
+        mosse_effettuate++;
+      } 
+    }
+  }
   while (true) {
     sort(grafo2_p.begin(), grafo2_p.end(), CompareNodoPtrDesc());
     if (grafo2_p[0]->grafed == false) {
@@ -214,47 +235,47 @@ void programmino(string inf, string outf, int id)
   // //cout << "before cleanup: " << duration.count() <<  "\n";
   float rap = 0.5;
   // da migliorare con un ordered set di SOLIDI ARCHI
-  // for (nodo* x: grafo_p) {
-  //   unordered_set<nodo*> lista_adiacenti_copia= x->adj;
-  //   for (nodo* n: lista_adiacenti_copia) {
-  //     float half_len = static_cast<float>(x->adj.size() - 1) * rap;
-  //     int non_trovati = 0;
-  //     for (nodo* i: x->adj) {
-  //       if (i!=n && n->adj.find(i) == n->adj.end()) {
-  //         non_trovati++;
-  //         if (non_trovati > half_len) {
-  //           break;
-  //         }
-  //       }
-  //     }
-  //     if (non_trovati > half_len) {
-  //       x->adj.erase(n);
-  //       n->adj.erase(x);
-  //       destroyed.insert("- "+to_string(n->id_nodo) + ' ' + to_string(x->id_nodo));
-  //       mucca++;
-  //     } 
-  //   }
-  // }
+  for (nodo* x: grafo_p) {
+    unordered_set<nodo*> lista_adiacenti_copia= x->adj;
+    for (nodo* n: lista_adiacenti_copia) {
+      float half_len = static_cast<float>(x->adj.size() - 1) * rap;
+      int non_trovati = 0;
+      for (nodo* i: x->adj) {
+        if (i!=n && n->adj.find(i) == n->adj.end()) {
+          non_trovati++;
+          if (non_trovati > half_len) {
+            break;
+          }
+        }
+      }
+      if (non_trovati > half_len) {
+        x->adj.erase(n);
+        n->adj.erase(x);
+        destroyed.insert("- "+to_string(n->id_nodo) + ' ' + to_string(x->id_nodo));
+        mucca++;
+      } 
+    }
+  }
 
-  // calcola_grafi(grafo_p, grafi);
-  // connetti_stacca_grafi2(grafi, created, destroyed, mucca);
-  // if (mucca < mosse_effettuate) {
-  //   ofstream outonee(outf);
-  //   outonee << created.size() << " " << destroyed.size() << "\n";
-  //   for (string i: created){
-  //     outonee << i << "\n";
-  //   }
-  //   for (string i: destroyed){
-  //     outonee << i << "\n";
-  //   }
-  //   outonee << "***" << "\n";
-  //   resu[id] = mucca;
-  // }
+  calcola_grafi(grafo_p, grafi);
+  connetti_stacca_grafi2(grafi, created, destroyed, mucca);
+  if (mucca < mosse_effettuate) {
+    ofstream outonee(outf);
+    outonee << created.size() << " " << destroyed.size() << "\n";
+    for (string i: created){
+      outonee << i << "\n";
+    }
+    for (string i: destroyed){
+      outonee << i << "\n";
+    }
+    outonee << "***" << "\n";
+    resu[id] = mucca;
+  }
 }
 
 
 int main() {
-  for (int i = 1; i <= 13; i++) {
+  for (int i = 14; i <= 19; i++) {
     string inf = "input/input"+ to_string(i)+".txt";
     string outf = "output/output"+ to_string(i)+".txt";
     programmino(inf, outf, i);
