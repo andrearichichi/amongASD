@@ -61,44 +61,30 @@ set<string> destroyed2;
 int mucca=0;
 int mucca2=0;
 
-void connetti_stacca_grafi(vector<set<nodo*> > grafim, set<string>& created_m, set<string>& destroyed_m, int& muccam){
+void connetti_stacca_grafi2(vector<set<nodo*> > grafim, set<string>& created_m, set<string>& destroyed_m, int& muccam){
   int a = 0;
   for (set<nodo*>& g : grafim) {
     cout << a << endl;
     a++;
     vector<nodo*> vect(g.begin(), g.end());
-    sort(vect.begin(), vect.end(), CompareNodoPtr());
-    set<nodo*> mySet_ordered(vect.begin(), vect.end());
-
     bool da_elliminare = true;
-    nodo* nodo_da_elliminarea = nullptr;
+    // set<nodo*> mySet_ordered(vect.begin(), vect.end());
     while (da_elliminare) {
-      int n_n = mySet_ordered.size()-1;
-      if (nodo_da_elliminarea != nullptr) {
-        unordered_set<nodo*> adjSet = nodo_da_elliminarea->adj;
-        cout  << nodo_da_elliminarea->id_nodo <<" "<< g.size()<< " " <<  mySet_ordered.size()<< endl;
-        g.erase(nodo_da_elliminarea);
-        mySet_ordered.erase(nodo_da_elliminarea);
-        for (nodo* n_to_del: adjSet) {
-          nodo_da_elliminarea->adj.erase(n_to_del);
-          n_to_del->adj.erase(nodo_da_elliminarea);
-          destroyed_m.insert("- "+to_string(nodo_da_elliminarea->id_nodo) + ' ' + to_string(n_to_del->id_nodo));
+      da_elliminare=false;
+      sort(vect.begin(), vect.end(), CompareNodoPtr());
+      if (vect[0]->adj.size()>g.size()) {
+        da_elliminare=true;
+        for (nodo* n:vect[0]->adj) {
+          n->adj.erase(vect[0]);
+          vect[0]->adj.erase(n);
+          destroyed_m.insert("- "+to_string(vect[0]->id_nodo) + ' ' + to_string(n->id_nodo));
           muccam++;
         }
-        nodo_da_elliminarea = nullptr;
-      }
-      da_elliminare = false;
-      for (nodo* to_del : mySet_ordered) {
-        if ( to_del->adj.size() < n_n/2) {
-          nodo_da_elliminarea = to_del;
-          da_elliminare = true;
-          break;
-        }
+        g.erase(vect[0]);
       }
     }
-    //coolllega il resto
-    for (nodo* to_add: mySet_ordered) {
-      for (nodo* to_add_remain: mySet_ordered) {
+    for (nodo* to_add: g) {
+      for (nodo* to_add_remain: g) {
         if(to_add != to_add_remain && to_add->adj.find(to_add_remain) == to_add->adj.end()) {
           to_add->adj.insert(to_add_remain);
           to_add_remain->adj.insert(to_add);
@@ -107,13 +93,74 @@ void connetti_stacca_grafi(vector<set<nodo*> > grafim, set<string>& created_m, s
           if (n_rimossi == 0 && n_rimossi2 == 0) {
             created_m.insert("+ "+to_string(to_add->id_nodo)+" "+to_string(to_add_remain->id_nodo));
             muccam++;
+          } else {
+            muccam--;
           }
         }
       }
     }
+    // nodo* nodo_da_elliminarea = nullptr;
+    //   int n_n = mySet_ordered.size()-1;
+    //   if (nodo_da_elliminarea != nullptr) {
+    //     unordered_set<nodo*> adjSet = nodo_da_elliminarea->adj;
+    //     cout  << nodo_da_elliminarea->id_nodo <<" "<< g.size()<< " " <<  mySet_ordered.size()<< endl;
+    //     g.erase(nodo_da_elliminarea);
+    //     mySet_ordered.erase(nodo_da_elliminarea);
+    //     for (nodo* n_to_del: adjSet) {
+    //       nodo_da_elliminarea->adj.erase(n_to_del);
+    //       n_to_del->adj.erase(nodo_da_elliminarea);
+    //       destroyed_m.insert("- "+to_string(nodo_da_elliminarea->id_nodo) + ' ' + to_string(n_to_del->id_nodo));
+    //       muccam++;
+    //     }
+    //     nodo_da_elliminarea = nullptr;
+    //   }
+    //   da_elliminare = false;
+    //   for (nodo* to_del : mySet_ordered) {
+    //     if ( to_del->adj.size() < n_n/2) {
+    //       nodo_da_elliminarea = to_del;
+    //       da_elliminare = true;
+    //       break;
+    //     }
+    //   }
+    // }
+    // //coolllega il resto
+    // for (nodo* to_add: mySet_ordered) {
+    //   for (nodo* to_add_remain: mySet_ordered) {
+    //     if(to_add != to_add_remain && to_add->adj.find(to_add_remain) == to_add->adj.end()) {
+    //       to_add->adj.insert(to_add_remain);
+    //       to_add_remain->adj.insert(to_add);
+    //       size_t n_rimossi = destroyed_m.erase("- "+to_string(to_add->id_nodo)+" "+to_string(to_add_remain->id_nodo));
+    //       size_t n_rimossi2 = destroyed_m.erase("- "+to_string(to_add_remain->id_nodo)+" "+to_string(to_add->id_nodo));
+    //       if (n_rimossi == 0 && n_rimossi2 == 0) {
+    //         created_m.insert("+ "+to_string(to_add->id_nodo)+" "+to_string(to_add_remain->id_nodo));
+    //         muccam++;
+    //       }
+    //     }
+    //   }
+    // }
   }
 }
 
+// void connetti_stacca_grafi(vector<set<nodo*> > grafim, set<string>& created_m, set<string>& destroyed_m, int& muccam){
+//   for (set<nodo*>& g : grafim) {
+//       for (nodo* elemento : g) {
+//         for (nodo* elemento2 : g) {
+//           if (elemento != elemento2 && elemento->adj.find(elemento2) == elemento->adj.end()) {
+//             elemento->adj.insert(elemento2);
+//             elemento2->adj.insert(elemento);
+//             size_t n_rimossi = destroyed.erase("- "+to_string(elemento2->id_nodo)+" "+to_string(elemento->id_nodo));
+//             size_t n_rimossi2 = destroyed.erase("- "+to_string(elemento->id_nodo)+" "+to_string(elemento2->id_nodo));
+//             if (n_rimossi == 0 && n_rimossi2 == 0) {
+//               created.insert("+ "+to_string(elemento2->id_nodo)+" "+to_string(elemento->id_nodo));
+//               mucca++;
+//             } else {
+//               mucca--;
+//             }
+//           }
+//         }
+//       }
+//     }
+//   } 
 void calcola_grafi(vector<nodo*>& grafo_m, vector<set<nodo*> >& grafi_m){
   stack<int> coda;
   grafo_count = -1;
@@ -182,66 +229,100 @@ void programmino(string inf, string outf, int id)
   // //cout << "before cleanup: " << duration.count() <<  "\n";
   float rap = 0.5;
   // da migliorare con un ordered set di SOLIDI ARCHI
-  sort(grafo_p.begin(), grafo_p.end(), CompareNodoPtr());
+  // sort(grafo_p.begin(), grafo_p.end(), CompareNodoPtr());
   for (nodo* x: grafo_p) {
+    unordered_set<nodo*> lista_adiacenti_copia= x->adj;
+    for (nodo* n: lista_adiacenti_copia) {
+      float half_len = static_cast<float>(x->adj.size() - 1) * rap;
+      int non_trovati = 0;
+      for (nodo* i: x->adj) {
+        if (i!=n && n->adj.find(i) == n->adj.end()) {
+          non_trovati++;
+          if (non_trovati > half_len) {
+            break;
+          }
+        }
+      }
+      if (non_trovati > half_len) {
+        x->adj.erase(n);
+        n->adj.erase(x);
+        destroyed.insert("- "+to_string(n->id_nodo) + ' ' + to_string(x->id_nodo));
+        mucca++;
+      } 
+    }
+  }
+
     // vector<nodo*> vec(x->adj.begin(), x->adj.end());
     // sort(vec.begin(), vec.end(), CompareNodoPtr());
     // x->adj.clear();
     // for (nodo* p : vec) {
     //   x->adj.insert(p);
     // }
-    bool da_elliminare = true;
-    nodo* nodo_da_elliminare = nullptr;
-    while (da_elliminare) {
-      if (nodo_da_elliminare != nullptr) {
-        x->adj.erase(nodo_da_elliminare);
-        nodo_da_elliminare->adj.erase(x);
-        destroyed.insert("- "+to_string(nodo_da_elliminare->id_nodo) + ' ' + to_string(x->id_nodo));
-        mucca++;
-      }
-      da_elliminare = false;
-      bool esci = false;
-      for (nodo* n: x->adj) {
-        if (archi_solidi.find(to_string(x->id_nodo)+to_string(n->id_nodo)) != archi_solidi.end()) {
-          continue;
-        }
-        if (esci) {
-          break;
-        }
-        float rapporto = 0;
-        if (x->adj.size()>1) {
-          rapporto = (n->adj.size()-1)/(x->adj.size() -1);
-        } 
-        if (rapporto > 0 && (rapporto < rap || rapporto > (1/rap))) {
-          nodo_da_elliminare = n;
-          da_elliminare = true;
-          break;
-        }
-        int half_len = (max(x->adj.size(), n->adj.size()) - 1) * rap;
-        int non_trovati = 0;
-        int trovati = 0;
-        for (nodo* i: n->adj) {
-          if (i!=n && x->adj.find(i) == x->adj.end()) {
-            non_trovati++;
-            if (n->adj.size() - non_trovati < half_len) {
-              nodo_da_elliminare = n;
-              da_elliminare = true;
-              esci=true;
-              break;
-            }
-          } 
-        }
-        if (da_elliminare == false) {
-          archi_solidi.insert(to_string(n->id_nodo)+to_string(x->id_nodo));
-          archi_solidi.insert(to_string(x->id_nodo)+to_string(n->id_nodo));
-        }
-      }
-    }
-  }
+  // for (nodo* x: grafo_p) {
+  //   nodo* nodo_da_elliminare = nullptr;
+  //   set<nodo*> to_elli;
+  //   unordered_set<nodo*> lista_adiacenti_copia= x->adj;
+      
+  //   for (nodo* n: lista_adiacenti_copia) {
+  //     to_elli.clear();
+  //     // if (archi_solidi.find(to_string(x->id_nodo)+to_string(n->id_nodo)) != archi_solidi.end()) {
+  //     //   continue;
+  //     // }
+
+  //     // float rapporto = 0;
+  //     // if (x->adj.size()>1) {
+  //     //   rapporto = (n->adj.size()-1)/(x->adj.size() -1);
+  //     // } 
+
+  //     // if (rapporto > 0 && (rapporto < rap)) {
+  //     //   // nodo_da_elliminare = n;
+  //     //   nodi_da_ell.insert(n);
+  //     //   // break;
+  //     // } else {
+  //     // int half_len = (max(x->adj.size(), n->adj.size()) - 1) * rap;
+  //     float half_len = static_cast<float>(x->adj.size()- 1) * rap;
+  //     int non_trovati = 0;
+  //     int trovati = 0;
+  //     for (nodo* i: n->adj) {
+  //       if (i!=x && x->adj.find(i) == x->adj.end()) {
+  //         non_trovati++;
+  //         to_elli.insert(i);
+  //         if (x->adj.size()-1 - non_trovati <= half_len) {
+  //           if (non_trovati > half_len) {
+  //             to_elli.clear();
+  //             x->adj.erase(n);
+  //             n->adj.erase(x);
+  //             destroyed.insert("- "+to_string(n->id_nodo) + ' ' + to_string(x->id_nodo));
+  //             mucca++;
+  //           } 
+  //         }
+  //       } else {
+  //         trovati++;
+  //         if (trovati > half_len) {
+  //           break;
+  //         }
+  //       }
+  //     }
+  //     for(nodo* i: to_elli) {
+  //       n->adj.erase(i);
+  //       i->adj.erase(n);
+  //       destroyed.insert("- "+to_string(i->id_nodo) + ' ' + to_string(n->id_nodo));
+  //       mucca++;
+  //     }
+  //   }
+      // archi_solidi.insert(to_string(n->id_nodo)+to_string(x->id_nodo));
+      // archi_solidi.insert(to_string(x->id_nodo)+to_string(n->id_nodo));
+      // if (da_elliminare == false) {
+      //   archi_solidi.insert(to_string(n->id_nodo)+to_string(x->id_nodo));
+      //   archi_solidi.insert(to_string(x->id_nodo)+to_string(n->id_nodo));
+      // }
+      // }
+    
+  // }
   //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   //cout << "after cleanup: " << duration.count() <<  "\n";
   calcola_grafi(grafo_p, grafi);
-  connetti_stacca_grafi(grafi, created, destroyed, mucca);
+  connetti_stacca_grafi2(grafi, created, destroyed, mucca);
 
   out << created.size() << " " << destroyed.size() << "\n";
   for (string i: created){
@@ -275,7 +356,7 @@ void programmino(string inf, string outf, int id)
 
 
 int main() {
-  for (int i = 0; i <= 19; i++) {
+  for (int i = 14; i <= 19; i++) {
     string inf = "input/input"+ to_string(i)+".txt";
     string outf = "output/output"+ to_string(i)+".txt";
     programmino(inf, outf, i);

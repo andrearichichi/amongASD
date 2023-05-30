@@ -145,11 +145,6 @@ void programmino(string inf, string outf, int id)
       grafo[t].adj.insert(f);
       grafo[t].id_nodo=t;
   }
-  out << "0 " << best_move << "\n";
-  for (string i: delete_base) {
-    out << i << "\n";
-  }
-  out << "***"<< "\n";
   
   //duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
   //cout << "before cleanup: " << duration.count() <<  "\n";
@@ -210,17 +205,15 @@ void programmino(string inf, string outf, int id)
 
 
 int main() {
-  // for (int i = 0; i <= 15; i++) {
-  //   string inf = "input/input"+ to_string(i)+".txt";
-  //   string outf = "output/output"+ to_string(i)+".txt";
-  //   programmino(inf, outf, i);
-  //   duration = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - startTime);
-  //   cout << inf << "   " << duration.count() <<  "\n";
-  // }
-  // string outf2 = "final_new.txt";
-  // ofstream out2(outf2);
-  // for (const auto& pair : resu) {
-  //     out2 << pair.first << ": " << pair.second << "\n";
-  // }
-  programmino("input.txt", "output.txt", 1);
+  for (int i = 1; i <= 1; i++) {
+    string inf = "input/input"+ to_string(i)+".txt";
+    string outf = "output/output"+ to_string(i)+".txt";
+    programmino(inf, outf, i);
+  }
+  string outf2 = "final_new.txt";
+  ofstream out2(outf2);
+  for (const auto& pair : resu) {
+      out2 << pair.first << ": " << pair.second << "\n";
+  }
+  // programmino("input.txt", "output.txt", 1);
 }

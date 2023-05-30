@@ -210,7 +210,7 @@ void programmino(string inf, string outf, int id)
 
 
 int main() {
-  for (int i = 0; i <= 19; i++) {
+  for (int i = 1; i <= 1; i++) {
     string inf = "input/input"+ to_string(i)+".txt";
     string outf = "output/output"+ to_string(i)+".txt";
     programmino(inf, outf, i);
